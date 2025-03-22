@@ -1,4 +1,4 @@
-package com.example.library_hw_oop1.ui.theme
+package com.example.android_course_t_bank.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

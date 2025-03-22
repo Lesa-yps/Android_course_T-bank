@@ -1,4 +1,4 @@
-package com.example.library_hw_oop1
+package com.example.android_course_t_bank
 
 import org.junit.Test
 

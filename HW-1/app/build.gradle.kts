@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.library_hw_oop1"
+    namespace = "com.example.android_course_t_bank"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.library_hw_oop1"
+        applicationId = "com.example.android_course_t_bank"
         minSdk = 24
         targetSdk = 35
         versionCode = 1

@@ -1,4 +1,4 @@
-package com.example.library_hw_oop1
+package com.example.android_course_t_bank
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -11,14 +11,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.library_hw_oop1.ui.theme.Library_HW_OOP1Theme
+import com.example.android_course_t_bank.ui.theme.Android_course_T_bankTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            Library_HW_OOP1Theme {
+            Android_course_T_bankTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Greeting(
                         name = "Android",
@@ -41,7 +41,7 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
-    Library_HW_OOP1Theme {
+    Android_course_T_bankTheme {
         Greeting("Android")
     }
 }

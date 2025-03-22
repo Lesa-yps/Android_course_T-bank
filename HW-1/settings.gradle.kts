@@ -19,6 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Library_HW_OOP1"
+rootProject.name = "Android_course_T_bank"
 include(":app")
- 

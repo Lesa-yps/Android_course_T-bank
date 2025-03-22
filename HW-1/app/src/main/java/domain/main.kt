@@ -1,24 +1,25 @@
+package domain
+
 fun main() {
-    println("Welcome, reader!")
+    println("Добро пожаловать, читатель!")
 
     val library = Library()
 
     while (true) {
 
-        // first menu
-        println("\n   Main Menu:\n" +
-                "1. Show books\n" +
-                "2. Show newspapers\n" +
-                "3. Show disks\n" +
-                "4. Exit program\n")
-        print("Select menu point: ")
+        // первое (главное) меню (выбор типа объекта)
+        println("\n   Главное меню:\n" +
+                "1. Показать книги\n" +
+                "2. Показать газеты\n" +
+                "3. Показать диски\n" +
+                "4. Выйти из программы\n")
+        print("Выберите пункт меню: ")
         val userChooseType = readlnOrNull()?.toIntOrNull()
         if (userChooseType == 4) {
-            println("Exiting program...")
+            println("Выход из программы...")
             break
-        }
-        else if (userChooseType !in 1..3) {
-            println("Invalid choice. Please try again.")
+        } else if (userChooseType !in 1..3) {
+            println("Неверный выбор. Пожалуйста, попробуйте снова.")
             continue
         }
 
@@ -27,177 +28,146 @@ fun main() {
 
             var flagGoToMainMenu = false
 
-            // second menu
-            print("Select an object number (or 0 for go to main menu): ")
+            // второе меню (выбор объекта)
+            print("Выберите номер объекта (или 0 для возврата в главное меню): ")
             var userChooseObj = readlnOrNull()?.toIntOrNull()
             val countChooseObj = library.getCountObj(userChooseType)
             while (userChooseObj !in 0..countChooseObj) {
-                print("\nError! Please try again: ")
+                print("\nОшибка! Пожалуйста, попробуйте снова: ")
                 userChooseObj = readlnOrNull()?.toIntOrNull()
             }
-            if (userChooseObj == 0)
-                break
+            if (userChooseObj == 0) break
             userChooseObj = userChooseObj!!.minus(1)
 
-            // third menu
-            println(
-                "\n   Menu:\n" +
-                        "1. Borrow home\n" +
-                        "2. Read in the reading hall\n" +
-                        "3. Show detailed information\n" +
-                        "4. Return\n" +
-                        "5. Back to main menu\n"
-            )
-            print("Select menu point: ")
+            // третье меню (выбор действия с объектом)
+            println("\n   Меню:\n" +
+                    "1. Взять домой\n" +
+                    "2. Читать в читальном зале\n" +
+                    "3. Показать детальную информацию\n" +
+                    "4. Вернуть\n" +
+                    "5. Вернуться в главное меню\n")
+            print("Выберите пункт меню: ")
 
             do {
                 val userAction = readlnOrNull()?.toIntOrNull()
-                if (userAction == 1)
-                    library.takeHome(userChooseType, userChooseObj)
-                else if (userAction == 2)
-                    library.takeRead(userChooseType, userChooseObj)
-                else if (userAction == 3)
-                    library.showLongInfoObj(userChooseType, userChooseObj)
-                else if (userAction == 4)
-                    library.returnObj(userChooseType, userChooseObj)
-                else if (userAction == 5)
-                    flagGoToMainMenu = true
-                else
-                    println("Invalid choice. Please try again.")
+                when (userAction) {
+                    1 -> library.takeHome(userChooseType, userChooseObj)
+                    2 -> library.takeRead(userChooseType, userChooseObj)
+                    3 -> library.showLongInfoObj(userChooseType, userChooseObj)
+                    4 -> library.returnObj(userChooseType, userChooseObj)
+                    5 -> flagGoToMainMenu = true
+                    else -> println("Неверный выбор. Пожалуйста, попробуйте снова.")
+                }
             } while (userAction !in 1..5)
 
         } while (!flagGoToMainMenu)
     }
 }
 
-
 open class LibraryObj(protected val id: Int, protected var isAvailable: Boolean, protected val name: String) {
-
     open fun showShortInfo() {
-        val isAvailableYN = if (isAvailable) "Yes" else "No"
-        println("$name available: $isAvailableYN")
+        val isAvailableYN = if (isAvailable) "Да" else "Нет"
+        println("$name доступен: $isAvailableYN")
     }
     open fun showLongInfo() {
-        println("Error: No detailed information available.")
+        println("Ошибка: Подробная информация недоступна.")
     }
     open fun takeHome() {
-        println("Error: This object cannot be borrowed home.")
+        println("Ошибка: Этот объект нельзя взять домой.")
     }
     open fun takeRead() {
-        println("Error: This object cannot be read in the reading hall.")
+        println("Ошибка: Этот объект нельзя читать в читальном зале.")
     }
     open fun returnObj() {
-        println("Error: This object cannot be returned.")
+        println("Ошибка: Этот объект нельзя вернуть.")
     }
 }
-
 
 class Book(id: Int, isAvailable: Boolean, name: String, private val pages: Int, private val author: String) : LibraryObj(id, isAvailable, name) {
-
     override fun showLongInfo() {
-        val isAvailableYN = if (isAvailable) "Yes" else "No"
-        println("Book: $name ($pages pages) by: $author with id: $id available: $isAvailableYN")
+        val isAvailableYN = if (isAvailable) "Да" else "Нет"
+        println("Книга: $name ($pages страниц) автор: $author с id: $id доступна: $isAvailableYN")
     }
-
     override fun takeHome() {
-        if (!isAvailable)
-            println("Error: This book is already borrowed.")
+        if (!isAvailable) println("Ошибка: Эта книга уже занята.")
         else {
             isAvailable = false
-            println("Book $id borrowed home.")
+            println("Книга $id взята домой.")
         }
     }
-
     override fun takeRead() {
-        if (!isAvailable)
-            println("Error: This book is already borrowed.")
+        if (!isAvailable) println("Ошибка: Эта книга уже занята.")
         else {
             isAvailable = false
-            println("Book $id taken to the reading hall.")
+            println("Книга $id взята в читальный зал.")
         }
     }
-
     override fun returnObj() {
-        if (isAvailable)
-            println("Error: This book is already in the library, it cannot be returned.")
+        if (isAvailable) println("Ошибка: Эта книга уже в библиотеке, ее нельзя вернуть.")
         else {
             isAvailable = true
-            println("Book $id returned.")
+            println("Книга $id возвращена.")
         }
     }
 }
-
 
 class Newspaper(id: Int, isAvailable: Boolean, name: String, private val issueNumber: Int) : LibraryObj(id, isAvailable, name) {
-
     override fun showLongInfo() {
-        val isAvailableYN = if (isAvailable) "Yes" else "No"
-        println("Issue: $issueNumber of newspaper $name with id: $id available: $isAvailableYN")
+        val isAvailableYN = if (isAvailable) "Да" else "Нет"
+        println("Газета: $name, выпуск $issueNumber, id: $id доступна: $isAvailableYN")
     }
-
     override fun takeRead() {
-        if (!isAvailable)
-            println("Error: This newspaper is already taken.")
+        if (!isAvailable) println("Ошибка: Эта газета уже занята.")
         else {
             isAvailable = false
-            println("Newspaper $id taken to the reading hall.")
+            println("Газета $id взята в читальный зал.")
         }
     }
-
     override fun returnObj() {
-        if (isAvailable)
-            println("Error: This newspaper is already in the library, it cannot be returned.")
+        if (isAvailable) println("Ошибка: Эта газета уже в библиотеке, ее нельзя вернуть.")
         else {
             isAvailable = true
-            println("Newspaper $id returned.")
+            println("Газета $id возвращена.")
         }
     }
 }
-
 
 enum class DiskType { CD, DVD }
 
 class Disk(id: Int, isAvailable: Boolean, name: String, private val type: DiskType) : LibraryObj(id, isAvailable, name) {
-
     override fun showLongInfo() {
-        val isAvailableYN = if (isAvailable) "Yes" else "No"
-        println("$type $name available: $isAvailableYN")
+        val isAvailableYN = if (isAvailable) "Да" else "Нет"
+        println("$type $name доступен: $isAvailableYN")
     }
-
     override fun takeHome() {
-        if (!isAvailable)
-            println("Error: This disk is already borrowed.")
+        if (!isAvailable) println("Ошибка: Этот диск уже занят.")
         else {
             isAvailable = false
-            println("Disk $id borrowed home.")
+            println("Диск $id взят домой.")
         }
     }
-
     override fun returnObj() {
-        if (isAvailable)
-            println("Error: This disk is already in the library, it cannot be returned.")
+        if (isAvailable) println("Ошибка: Этот диск уже в библиотеке, его нельзя вернуть.")
         else {
             isAvailable = true
-            println("Disk $id returned.")
+            println("Диск $id возвращен.")
         }
     }
 }
 
-
-class Library () {
-    private val lstBooks: List<LibraryObj> = listOf(
-        Book(1, true, "Mowgli", 202, "Joseph Kipling"),
-        Book(2, true, "War and Peace", 1225, "Leo Tolstoy")
+class Library {
+    private val lstBooks = listOf(
+        Book(1, true, "Маугли", 202, "Редьярд Киплинг"),
+        Book(2, true, "Война и мир", 1225, "Лев Толстой")
     )
-    private val lstNewspapers: List<LibraryObj> = listOf(
-        Newspaper(3, false, "Rural Life", 794),
-        Newspaper(4, true, "Komsomolskaya Pravda", 1123)
+    private val lstNewspapers = listOf(
+        Newspaper(3, false, "Деревенская жизнь", 794),
+        Newspaper(4, true, "Комсомольская правда", 1123)
     )
-    private val lstDisks: List<LibraryObj> = listOf(
-        Disk(5, true, "Deadpool and Wolverine", DiskType.DVD),
-        Disk(6, false, "Ice Age", DiskType.CD)
+    private val lstDisks = listOf(
+        Disk(5, true, "Дэдпул и Росомаха", DiskType.DVD),
+        Disk(6, false, "Ледниковый период", DiskType.CD)
     )
-
     private val allObjs: Map<Int, List<LibraryObj>> = mapOf(
         1 to lstBooks,
         2 to lstNewspapers,
@@ -205,12 +175,12 @@ class Library () {
     )
 
     fun showShortInfoObjs(type: Int) {
-        require(type in allObjs.keys) { "Error: Invalid object type." }
+        require(type in allObjs.keys) { "Ошибка: несуществующий тип объекта." }
 
         if (allObjs[type]!!.isEmpty())
-            println("\n   Object's list is empty.")
+            println("\n   Список объектов пуст.")
         else {
-            println("\n   List of objects:")
+            println("\n   Список объектов:")
             allObjs[type]!!.forEachIndexed { index, obj ->
                 print("${index + 1}. ")
                 obj.showShortInfo()
@@ -219,35 +189,35 @@ class Library () {
     }
 
     fun showLongInfoObj(type: Int, numbObj: Int) {
-        require(type in allObjs.keys) { "Error: Invalid object type." }
-        require(numbObj in 0..<allObjs[type]!!.size) { "Error: No such object number exists." }
+        require(type in allObjs.keys) { "Ошибка: несуществующий тип объекта." }
+        require(numbObj in 0..<allObjs[type]!!.size) { "Ошибка: объекта под таким номером не существует." }
 
         allObjs[type]!![numbObj].showLongInfo()
     }
 
     fun getCountObj(type: Int): Int {
-        require(type in allObjs.keys) { "Error: Invalid object type." }
+        require(type in allObjs.keys) { "Ошибка: несуществующий тип объекта." }
 
         return allObjs[type]!!.size
     }
 
     fun takeHome(type: Int, numbObj: Int) {
-        require(type in allObjs.keys) { "Error: Invalid object type." }
-        require(numbObj in 0..<allObjs[type]!!.size) { "Error: No such object number exists." }
+        require(type in allObjs.keys) { "Ошибка: несуществующий тип объекта." }
+        require(numbObj in 0..<allObjs[type]!!.size) { "Ошибка: объекта под таким номером не существует." }
 
         allObjs[type]!![numbObj].takeHome()
     }
 
     fun takeRead(type: Int, numbObj: Int) {
-        require(type in allObjs.keys) { "Error: Invalid object type." }
-        require(numbObj in 0..<allObjs[type]!!.size) { "Error: No such object number exists." }
+        require(type in allObjs.keys) { "Ошибка: несуществующий тип объекта." }
+        require(numbObj in 0..<allObjs[type]!!.size) { "Ошибка: объекта под таким номером не существует." }
 
         allObjs[type]!![numbObj].takeRead()
     }
 
     fun returnObj(type: Int, numbObj: Int) {
-        require(type in allObjs.keys) { "Error: Invalid object type." }
-        require(numbObj in 0..<allObjs[type]!!.size) { "Error: No such object number exists." }
+        require(type in allObjs.keys) { "Ошибка: несуществующий тип объекта." }
+        require(numbObj in 0..<allObjs[type]!!.size) { "Ошибка: объекта под таким номером не существует." }
 
         allObjs[type]!![numbObj].returnObj()
     }
