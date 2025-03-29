@@ -27,7 +27,6 @@ fun main() {
             library.showShortInfoObjs(userChooseType!!)
 
             var flagGoToMainMenu = false
-
             // второе меню (выбор/покупка объекта)
             print("\nВыберите номер объекта (или -1 для покупки нового, 0 для возврата в главное меню): ")
             var userChooseObj = readlnOrNull()?.toIntOrNull()
