@@ -63,6 +63,5 @@ dependencies {
     implementation(libs.javafaker)
     implementation(libs.androidx.recyclerview)
     implementation(libs.androidx.constraintlayout.v214)
-    implementation(libs.androidx.recyclerview)
     implementation(libs.androidx.cardview)
 }
