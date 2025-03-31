@@ -18,5 +18,14 @@ abstract class LibraryObj(protected val id: Int, protected var isAvailable: Bool
         }
     }
 
+    fun changeAvailable() {
+        isAvailable = ! isAvailable
+    }
+
+    fun myGetId(): Int = id
+    fun myGetName(): String = name
+    fun myGetHumanReadableType(): String = humanReadableType
+    fun myGetIsAvailable(): Boolean = isAvailable
+
     abstract fun showLongInfo()
 }

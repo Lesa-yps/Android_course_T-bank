@@ -3,16 +3,31 @@ package domain
 class Library {
     private val lstBooks: MutableList<LibraryObj> = mutableListOf(
         Book(1, true, "Маугли", 202, "Редьярд Киплинг"),
-        Book(2, true, "Война и мир", 1225, "Лев Толстой")
+        Book(2, true, "Война и мир", 1225, "Лев Толстой"),
+        Book(3, false, "Преступление и наказание", 671, "Фёдор Достоевский"),
+        Book(4, true, "1984", 328, "Джордж Оруэлл"),
+        Book(5, false, "Гарри Поттер и философский камень", 432, "Дж. К. Роулинг"),
+        Book(6, true, "Мастер и Маргарита", 470, "Михаил Булгаков"),
+        Book(7, false, "Таинственный остров", 650, "Жюль Верн")
     )
+
     private val lstNewspapers: MutableList<LibraryObj> = mutableListOf(
-        Newspaper(3, false, "Деревенская жизнь", 794, 1),
-        Newspaper(4, true, "Комсомольская правда", 1123, 7)
+        Newspaper(1, false, "Деревенская жизнь", 794, 1),
+        Newspaper(2, true, "Комсомольская правда", 1123, 7),
+        Newspaper(3, true, "Известия", 900, 5),
+        Newspaper(4, false, "Московский комсомолец", 1050, 3),
+        Newspaper(5, true, "Аргументы и факты", 870, 2)
     )
+
     private val lstDisks: MutableList<LibraryObj> = mutableListOf(
-        Disk(5, true, "Дэдпул и Росомаха", DiskType.DVD),
-        Disk(6, false, "Ледниковый период", DiskType.CD)
+        Disk(1, true, "Дэдпул и Росомаха", DiskType.DVD),
+        Disk(2, false, "Ледниковый период", DiskType.CD),
+        Disk(3, true, "Матрица", DiskType.DVD),
+        Disk(4, false, "Интерстеллар", DiskType.DVD),
+        Disk(5, true, "Аватар", DiskType.DVD),
+        Disk(6, true, "Властелин колец", DiskType.DVD)
     )
+
     private val allObjs: Map<Int, MutableList<LibraryObj>> = mapOf(
         1 to lstBooks,
         2 to lstNewspapers,
@@ -103,4 +118,8 @@ class Library {
         else
             println("Этот тип объекта не может быть оцифрован.")
     }
+
+    fun getBooks() = lstBooks
+    fun getNewspapers() = lstNewspapers
+    fun getDisks() = lstDisks
 }
