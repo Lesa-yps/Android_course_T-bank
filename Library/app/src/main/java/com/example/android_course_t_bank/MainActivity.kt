@@ -1,15 +1,19 @@
 package com.example.android_course_t_bank
 
+import android.app.Activity
+import android.os.Build
 import android.os.Bundle
+import android.widget.Button
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import domain.Library
 import domain.LibraryObj
 
+
 class MainActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
-    private lateinit var adapter: LibraryAdapter
     private val library = Library()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,7 +29,7 @@ class MainActivity : AppCompatActivity() {
             addAll(library.getDisks())
         }
 
-        adapter = LibraryAdapter(allItems)
+        val adapter = LibraryAdapter(allItems)
         recyclerView.adapter = adapter
 
         // ItemTouchHelper — это утилита, которая позволяет добавить функции drag & drop и swipe-to-dismiss в RecyclerView в Android
@@ -41,5 +45,29 @@ class MainActivity : AppCompatActivity() {
         })
 
         itemTouchHelper.attachToRecyclerView(recyclerView)
+
+        // Обработка кнопки "Добавить" (элемент)
+        val buttonAdd: Button = findViewById(R.id.buttonAdd)
+
+        buttonAdd.setOnClickListener {
+            val intent = DetailAddActivity.createIntent(this)
+            addItemLauncher.launch(intent)
+        }
+
     }
+
+    private val addItemLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (it.resultCode == Activity.RESULT_OK) {
+            val newObj: LibraryObj? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                it.data?.getSerializableExtra(DetailAddActivity.LIB_OBJ, LibraryObj::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                it.data?.getSerializableExtra(DetailAddActivity.LIB_OBJ) as? LibraryObj
+            }
+            newObj?.let { obj ->
+                (recyclerView.adapter as? LibraryAdapter)?.addItem(obj)
+            }
+        }
+    }
+
 }
