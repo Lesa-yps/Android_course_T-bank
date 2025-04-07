@@ -1,6 +1,8 @@
 package domain
 
-enum class DiskType { CD, DVD }
+import java.io.Serializable
+
+enum class DiskType : Serializable { CD, DVD }
 
 class Disk(id: Int, isAvailable: Boolean, name: String, private val type: DiskType) :
         LibraryObj(id, isAvailable, name), LibraryTakableHome {
@@ -10,6 +12,11 @@ class Disk(id: Int, isAvailable: Boolean, name: String, private val type: DiskTy
     override fun showLongInfo() {
         val isAvailableYN = if (isAvailable) "Да" else "Нет"
         println("$type $name доступен: $isAvailableYN")
+    }
+
+    override fun getLongInfo(): String {
+        val isAvailableYN = if (isAvailable) "Да" else "Нет"
+        return "Диск $name\n тип $type\n доступен: $isAvailableYN"
     }
 
     override fun takeHome() {

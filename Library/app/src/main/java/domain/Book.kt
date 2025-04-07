@@ -10,6 +10,11 @@ class  Book(id: Int, isAvailable: Boolean, name: String, private val pages: Int,
         println("Книга: $name ($pages страниц) автор: $author с id: $id доступна: $isAvailableYN")
     }
 
+    override fun getLongInfo(): String {
+        val isAvailableYN = if (isAvailable) "Да" else "Нет"
+        return "Книга: $name\n $pages страниц\n автор: $author\n id: $id\n доступна: $isAvailableYN"
+    }
+
     override fun takeHome() {
         if (!isAvailable) println("Ошибка: Эта книга уже занята.")
         else {
