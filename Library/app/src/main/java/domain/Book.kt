@@ -1,6 +1,6 @@
 package domain
 
-class  Book(id: Int, isAvailable: Boolean, name: String, private val pages: Int, private val author: String) :
+class  Book(id: Int, isAvailable: Boolean, name: String, val pages: Int, val author: String) :
         LibraryObj(id, isAvailable, name), LibraryReadableHere, LibraryTakableHome, LibraryDigitizable {
 
     override val humanReadableType = "Книга"
@@ -8,6 +8,11 @@ class  Book(id: Int, isAvailable: Boolean, name: String, private val pages: Int,
     override fun showLongInfo() {
         val isAvailableYN = if (isAvailable) "Да" else "Нет"
         println("Книга: $name ($pages страниц) автор: $author с id: $id доступна: $isAvailableYN")
+    }
+
+    override fun getLongInfo(): String {
+        val isAvailableYN = if (isAvailable) "Да" else "Нет"
+        return "Книга: $name\n $pages страниц\n автор: $author\n id: $id\n доступна: $isAvailableYN"
     }
 
     override fun takeHome() {
