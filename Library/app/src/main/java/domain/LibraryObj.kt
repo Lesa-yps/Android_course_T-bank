@@ -2,7 +2,7 @@ package domain
 
 import java.io.Serializable
 
-abstract class LibraryObj(protected val id: Int, protected var isAvailable: Boolean, protected val name: String): Serializable {
+abstract class LibraryObj(val id: Int, var isAvailable: Boolean, val name: String): Serializable {
 
     abstract val humanReadableType: String
 

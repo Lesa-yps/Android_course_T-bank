@@ -4,7 +4,7 @@ import java.io.Serializable
 
 enum class DiskType : Serializable { CD, DVD }
 
-class Disk(id: Int, isAvailable: Boolean, name: String, private val type: DiskType) :
+class Disk(id: Int, isAvailable: Boolean, name: String, val type: DiskType) :
         LibraryObj(id, isAvailable, name), LibraryTakableHome {
 
     override val humanReadableType = "Диск"

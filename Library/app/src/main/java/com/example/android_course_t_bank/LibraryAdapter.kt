@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import domain.Book
 import domain.Disk
@@ -55,8 +56,7 @@ class LibraryAdapter(private val items: MutableList<LibraryObj>):
         // Реакция на клик - вызов onItemClick
         holder.itemView.setOnClickListener {
             val context = holder.itemView.context
-            val intent = DetailInfoActivity.createIntent(context)
-            intent.putExtra(DetailInfoActivity.LIB_OBJ, item) // Передача объекта типа LibraryObj
+            val intent = DetailActivity.createIntent(context, item, isReadOnly = true)
             context.startActivity(intent)
         }
     }
@@ -75,9 +75,11 @@ class LibraryAdapter(private val items: MutableList<LibraryObj>):
         }
     }
 
-    // Добавление элемента
-    fun addItem(item: LibraryObj) {
-        items.add(item)
-        notifyItemInserted(items.size - 1)
+    fun setItems(newItems: List<LibraryObj>) {
+        val diffCallback = LibraryDiffCallback(items, newItems)
+        val diffResult = DiffUtil.calculateDiff(diffCallback)
+        items.clear()
+        items.addAll(newItems)
+        diffResult.dispatchUpdatesTo(this)
     }
 }

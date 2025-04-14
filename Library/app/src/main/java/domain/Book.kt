@@ -1,6 +1,6 @@
 package domain
 
-class  Book(id: Int, isAvailable: Boolean, name: String, private val pages: Int, private val author: String) :
+class  Book(id: Int, isAvailable: Boolean, name: String, val pages: Int, val author: String) :
         LibraryObj(id, isAvailable, name), LibraryReadableHere, LibraryTakableHome, LibraryDigitizable {
 
     override val humanReadableType = "Книга"

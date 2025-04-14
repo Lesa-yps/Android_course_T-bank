@@ -47,9 +47,9 @@
     </string>
     <string name="buttonAdd">Добавить</string>
     <string name="defInfo">Какая-то информация</string>
-    <string name="Back">Назад</string>
     <string name="typeBook">Книга</string>
     <string name="typeNewspaper">Газета</string>
     <string name="typeDisk">Диск</string>
-    <string name="Save">Сохранить</string>
+    <string name="defText">Какой-то текст</string>
+    <string name="readonly_field">%1$s: %2$s</string>
 </resources>

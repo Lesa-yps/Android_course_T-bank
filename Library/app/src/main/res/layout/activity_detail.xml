@@ -53,7 +53,7 @@
         android:layout_marginHorizontal="20dp"
         android:layout_gravity="bottom|center_horizontal"
         android:layout_marginBottom="24dp"
-        android:text="@string/Save"
+        android:text="@string/defText"
         android:textColor="@android:color/white"
         android:backgroundTint="#6200EE"
         android:padding="12dp" />
