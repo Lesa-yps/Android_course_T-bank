@@ -1,45 +1,76 @@
 package com.example.android_course_t_bank
 
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.RecyclerView
-import domain.Library
+import androidx.fragment.app.commit
 import domain.LibraryObj
 
-class MainActivity : AppCompatActivity() {
-    private lateinit var recyclerView: RecyclerView
-    private lateinit var adapter: LibraryAdapter
-    private val library = Library()
+class MainActivity : AppCompatActivity(),
+ListFragment.OnLibraryItemClickListener,
+DetailFragment.OnSaveListener {
+
+    private val isLandscape: Boolean
+    get() = findViewById<View?>(R.id.detailFragmentContainer) != null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        recyclerView = findViewById(R.id.recyclerView)
+        if (savedInstanceState == null) {
+            if (isLandscape) {
+                supportFragmentManager.commit {
+                    replace(R.id.listFragmentContainer, ListFragment())
+                }
+            } else {
+                supportFragmentManager.commit {
+                    replace(R.id.fragmentContainer, ListFragment())
+                }
+            }
+        }
+    }
 
-        // Объединение всех объектов библиотеки в один список
-        val allItems = mutableListOf<LibraryObj>().apply {
-            addAll(library.getBooks())
-            addAll(library.getNewspapers())
-            addAll(library.getDisks())
+    override fun onLibraryItemClick(item: LibraryObj) {
+        val fragment = DetailFragment.newInstance(item, isReadOnly = true)
+
+        if (isLandscape) {
+            supportFragmentManager.commit {
+                replace(R.id.detailFragmentContainer, fragment)
+            }
+        } else {
+            supportFragmentManager.commit {
+                replace(R.id.fragmentContainer, fragment)
+                addToBackStack(null)
+            }
+        }
+    }
+
+    override fun onAddItemRequested() {
+        val fragment = DetailFragment.newInstance(null, isReadOnly = false)
+
+        if (isLandscape) {
+            supportFragmentManager.commit {
+                replace(R.id.detailFragmentContainer, fragment)
+            }
+        } else {
+            supportFragmentManager.commit {
+                replace(R.id.fragmentContainer, fragment)
+                addToBackStack(null)
+            }
+        }
+    }
+
+    // При сохранении объекта из DetailFragment
+    override fun onObjectSaved(obj: LibraryObj) {
+        val listFragment = supportFragmentManager
+            .findFragmentById(if (isLandscape) R.id.listFragmentContainer else R.id.fragmentContainer)
+
+        if (listFragment is ListFragment) {
+            listFragment.addItem(obj)
         }
 
-        adapter = LibraryAdapter(allItems)
-        recyclerView.adapter = adapter
-
-        // ItemTouchHelper — это утилита, которая позволяет добавить функции drag & drop и swipe-to-dismiss в RecyclerView в Android
-        val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
-            override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
-                return false // Перемещения элементов заблокированы
-            }
-
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                val position = viewHolder.bindingAdapterPosition
-                adapter.removeItem(position) // Удаление элемента при свайпе в любую сторону
-            }
-        })
-
-        itemTouchHelper.attachToRecyclerView(recyclerView)
+        if (!isLandscape) {
+            supportFragmentManager.popBackStack()
+        }
     }
 }
