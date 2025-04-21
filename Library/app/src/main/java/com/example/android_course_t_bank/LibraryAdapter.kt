@@ -5,7 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import domain.Book
 import domain.Disk
@@ -13,7 +13,8 @@ import domain.LibraryObj
 import domain.Newspaper
 
 
-class LibraryAdapter(private val items: MutableList<LibraryObj>): RecyclerView.Adapter<LibraryAdapter.LibraryViewHolder>() {
+class LibraryAdapter(private val items: MutableList<LibraryObj>):
+        RecyclerView.Adapter<LibraryAdapter.LibraryViewHolder>() {
 
     // Объект, который хранит ссылки на элементы карточки
     class LibraryViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -52,15 +53,11 @@ class LibraryAdapter(private val items: MutableList<LibraryObj>): RecyclerView.A
         // Установка подъема карточки в зависимости от доступности элемента
         holder.itemView.elevation = if (isAvailable) 10f else 1f
 
-        // Реакция на клик - изменение доступности элемента и обновление UI
+        // Реакция на клик - вызов onItemClick
         holder.itemView.setOnClickListener {
-            item.changeAvailable()
-            // Сообщение RecyclerView, что данные изменились, и он перезапускает onBindViewHolder только для этого элемента
-            notifyItemChanged(holder.bindingAdapterPosition)
-            // Показ тоста
             val context = holder.itemView.context
-            val message = context.getString(R.string.toast_item_changed, item.myGetId())
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            val intent = DetailActivity.createIntent(context, item, isReadOnly = true)
+            context.startActivity(intent)
         }
     }
 
@@ -76,5 +73,13 @@ class LibraryAdapter(private val items: MutableList<LibraryObj>): RecyclerView.A
             // Сообщение адаптеру, что все элементы, начиная с position, изменились, RecyclerView перерисует эти элементы (без анимации удаления)
             notifyItemRangeChanged(position, items.size)
         }
+    }
+
+    fun setItems(newItems: List<LibraryObj>) {
+        val diffCallback = LibraryDiffCallback(items, newItems)
+        val diffResult = DiffUtil.calculateDiff(diffCallback)
+        items.clear()
+        items.addAll(newItems)
+        diffResult.dispatchUpdatesTo(this)
     }
 }

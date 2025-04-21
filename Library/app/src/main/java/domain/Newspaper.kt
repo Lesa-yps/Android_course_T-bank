@@ -1,7 +1,9 @@
 package domain
 
+import java.io.Serializable
 
-class Newspaper(id: Int, isAvailable: Boolean, name: String, private val issueNumber: Int, private val month: Int) :
+
+class Newspaper(id: Int, isAvailable: Boolean, name: String, val issueNumber: Int, val month: Int) :
         LibraryObj(id, isAvailable, name), LibraryReadableHere, LibraryDigitizable {
 
     override val humanReadableType = "Газета"
@@ -14,6 +16,12 @@ class Newspaper(id: Int, isAvailable: Boolean, name: String, private val issueNu
         val isAvailableYN = if (isAvailable) "Да" else "Нет"
         val monthName = MonthRu.fromNumber(month)
         println("Газета: $name, выпуск $issueNumber, id: $id, месяц: ${monthName}, доступна: $isAvailableYN")
+    }
+
+    override fun getLongInfo(): String {
+        val isAvailableYN = if (isAvailable) "Да" else "Нет"
+        val monthName = MonthRu.fromNumber(month)
+        return "Газета: $name\n выпуск $issueNumber\n id: $id\n месяц: ${monthName}\n доступна: $isAvailableYN"
     }
 
     override fun readHere() {
@@ -30,7 +38,7 @@ class Newspaper(id: Int, isAvailable: Boolean, name: String, private val issueNu
 }
 
 
-enum class MonthRu(val number: Int, val monthRusName: String) {
+enum class MonthRu(val number: Int, val monthRusName: String) : Serializable {
     JANUARY(1, "Январь"),
     FEBRUARY(2, "Февраль"),
     MARCH(3, "Март"),

@@ -1,6 +1,8 @@
 package domain
 
-abstract class LibraryObj(protected val id: Int, protected var isAvailable: Boolean, protected val name: String) {
+import java.io.Serializable
+
+abstract class LibraryObj(val id: Int, var isAvailable: Boolean, val name: String): Serializable {
 
     abstract val humanReadableType: String
 
@@ -28,4 +30,5 @@ abstract class LibraryObj(protected val id: Int, protected var isAvailable: Bool
     fun myGetIsAvailable(): Boolean = isAvailable
 
     abstract fun showLongInfo()
+    abstract fun getLongInfo(): String
 }
