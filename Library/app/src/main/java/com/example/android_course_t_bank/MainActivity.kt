@@ -20,7 +20,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var shimmerLayout: ShimmerFrameLayout
     private lateinit var errorTextView: TextView
-    private lateinit var button: Button
+    private lateinit var buttonAddUpdate: Button
     private val library = Library()
     private val viewModel: LibraryViewModel by viewModels()
     private lateinit var adapter: LibraryAdapter
@@ -33,7 +33,7 @@ class MainActivity : AppCompatActivity() {
         shimmerLayout = findViewById(R.id.shimmerLayout)
         errorTextView = findViewById(R.id.errorTextView)
 
-        button = findViewById<Button>(R.id.buttonAdd)
+        buttonAddUpdate = findViewById<Button>(R.id.buttonAddUpdate)
 
         adapter = LibraryAdapter(mutableListOf())
         recyclerView.layoutManager = LinearLayoutManager(this)
@@ -47,8 +47,8 @@ class MainActivity : AppCompatActivity() {
                     shimmerLayout.startShimmer()
                     errorTextView.visibility = View.GONE
                     recyclerView.visibility = View.GONE
-                    button.isEnabled = false
-                    button.text = "Загрузка..."
+                    buttonAddUpdate.isEnabled = false
+                    buttonAddUpdate.text = "Загрузка..."
                 }
 
                 is State.Error -> {
@@ -58,8 +58,8 @@ class MainActivity : AppCompatActivity() {
                     errorTextView.visibility = View.VISIBLE
                     errorTextView.text = state.message
                     recyclerView.visibility = View.GONE
-                    button.isEnabled = true
-                    button.text = "Обновить"
+                    buttonAddUpdate.isEnabled = true
+                    buttonAddUpdate.text = "Обновить"
                 }
 
                 is State.Data<*> -> {
@@ -69,8 +69,8 @@ class MainActivity : AppCompatActivity() {
                     errorTextView.visibility = View.GONE
                     recyclerView.visibility = View.VISIBLE
                     adapter.setItems(state.data as List<LibraryObj>)
-                    button.isEnabled = true
-                    button.text = "Добавить"
+                    buttonAddUpdate.isEnabled = true
+                    buttonAddUpdate.text = "Добавить"
                 }
             }
         }
@@ -87,7 +87,7 @@ class MainActivity : AppCompatActivity() {
             ): Boolean = false
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                val position = viewHolder.adapterPosition
+                val position = viewHolder.bindingAdapterPosition
                 viewModel.removeItem(
                     position = position,
                     onError = {
@@ -99,7 +99,7 @@ class MainActivity : AppCompatActivity() {
         })
         itemTouchHelper.attachToRecyclerView(recyclerView)
 
-        button.setOnClickListener {
+        buttonAddUpdate.setOnClickListener {
             when (viewModel.state.value) {
                 is State.Error -> {
                     viewModel.refreshFromLastSuccessful()
