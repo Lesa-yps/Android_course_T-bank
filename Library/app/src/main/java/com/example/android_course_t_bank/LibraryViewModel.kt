@@ -99,4 +99,26 @@ class LibraryViewModel : ViewModel() {
             }
         }
     }
+
+    fun refreshFromLastSuccessful() {
+        runningJob?.cancel() // отмена предыдущей загрузки при наличии
+        runningJob = viewModelScope.launch {
+            try {
+                // установка состояния загрузки
+                _state.value = State.Loading()
+                // симуляция задержки
+                delay((100..2000).random().toLong())
+                // инкремент и рандомизированная ошибка на каждое 5-е обращение
+                countDataAsk++
+                if (countDataAsk % 5 == 0) {
+                    throw Exception("Симулированная ошибка обновления.")
+                }
+                // обновление списка
+                _state.value = State.Data(lastSuccessfulList.toList())
+            } catch (e: Exception) {
+                // установка состояния ошибки
+                _state.value = State.Error("Произошла ошибка при обновлении: ${e.message}")
+            }
+        }
+    }
 }
