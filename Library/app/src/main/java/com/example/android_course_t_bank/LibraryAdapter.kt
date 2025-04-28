@@ -82,4 +82,6 @@ class LibraryAdapter(private val items: MutableList<LibraryObj>):
         items.addAll(newItems)
         diffResult.dispatchUpdatesTo(this)
     }
+
+    fun getItem(position: Int): LibraryObj = items[position]
 }

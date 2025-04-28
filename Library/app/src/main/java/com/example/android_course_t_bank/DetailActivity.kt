@@ -1,6 +1,5 @@
 package com.example.android_course_t_bank
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -95,7 +94,7 @@ class DetailActivity : AppCompatActivity() {
         addEditText("Название", "editTextName", book?.name ?: "")
         addEditText("Автор", "editTextAuthor", book?.author ?: "")
         addEditText("Страницы", "editTextPages", book?.pages?.toString() ?: "")
-        addCheckBox("Доступна", "checkBoxAvailable", book?.isAvailable ?: false)
+        addCheckBox("Доступна", "checkBoxAvailable", book?.isAvailable == true)
     }
 
     private fun renderFormForNewspaper(news: Newspaper? = null) {
@@ -104,7 +103,7 @@ class DetailActivity : AppCompatActivity() {
         addEditText("Название", "editTextName", news?.name ?: "")
         addEditText("Выпуск", "editTextIssue", news?.issueNumber?.toString() ?: "")
         addEditText("Месяц", "editTextMonth", news?.month?.toString() ?: "")
-        addCheckBox("Доступна", "checkBoxAvailable", news?.isAvailable ?: false)
+        addCheckBox("Доступна", "checkBoxAvailable", news?.isAvailable == true)
     }
 
     private fun renderFormForDisk(disk: Disk? = null) {
@@ -112,7 +111,7 @@ class DetailActivity : AppCompatActivity() {
         addEditText("ID", "editTextId", disk?.id?.toString() ?: "")
         addEditText("Название", "editTextName", disk?.name ?: "")
         addEditText("Тип (CD или DVD)", "editTextTypeDisk", disk?.type?.name ?: "")
-        addCheckBox("Доступен", "checkBoxAvailable", disk?.isAvailable ?: false)
+        addCheckBox("Доступен", "checkBoxAvailable", disk?.isAvailable == true)
     }
 
     private fun addEditText(hint: String, tag: String, value: String = "") {
@@ -152,37 +151,38 @@ class DetailActivity : AppCompatActivity() {
 
         val id = (values.find { it.tag == "editTextId" } as? EditText)?.text.toString().toIntOrNull() ?: 0
         val name = (values.find { it.tag == "editTextName" } as? EditText)?.text.toString()
-        val isAvailable = (values.find { it.tag == "checkBoxAvailable" } as? CheckBox)?.isChecked ?: false
+        val isAvailable = (values.find { it.tag == "checkBoxAvailable" } as? CheckBox)?.isChecked == true
+        val addedDate = System.currentTimeMillis()
 
         val obj: LibraryObj? = when (selectedType) {
             "Книга" -> {
                 val author = (values.find { it.tag == "editTextAuthor" } as? EditText)?.text.toString()
                 val pages = (values.find { it.tag == "editTextPages" } as? EditText)?.text.toString().toIntOrNull() ?: 0
-                Book(id, isAvailable, name, pages, author)
+                Book(id, isAvailable, name, pages, author, addedDate)
             }
             "Газета" -> {
                 val issue = (values.find { it.tag == "editTextIssue" } as? EditText)?.text.toString().toIntOrNull() ?: 0
                 val rawMonth = (values.find { it.tag == "editTextMonth" } as? EditText)?.text.toString().toIntOrNull()
                 val month = rawMonth?.takeIf { it in 1..12 } ?: 12
-                Newspaper(id, isAvailable, name, issue, month)
+                Newspaper(id, isAvailable, name, issue, month, addedDate)
             }
             "Диск" -> {
                 val typeStr = (values.find { it.tag == "editTextTypeDisk" } as? EditText)?.text.toString().uppercase()
                 val type = try {
                     DiskType.valueOf(typeStr)
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     DiskType.CD
                 }
-                Disk(id, isAvailable, name, type)
+                Disk(id, isAvailable, name, type, addedDate)
             }
             else -> null
         }
 
         obj?.let {
             val resultIntent = Intent().putExtra(LIB_OBJ, it)
-            setResult(Activity.RESULT_OK, resultIntent)
+            setResult(RESULT_OK, resultIntent)
             finish()
         }
-        setResult(Activity.RESULT_CANCELED)
+        setResult(RESULT_CANCELED)
     }
 }

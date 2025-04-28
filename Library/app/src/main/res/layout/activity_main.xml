@@ -7,18 +7,68 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+
+    <!-- Шиммер -->
+    <com.facebook.shimmer.ShimmerFrameLayout
+        android:id="@+id/shimmerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="16dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent">
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/shimmer_placeholder"
+            android:padding="16dp" />
+    </com.facebook.shimmer.ShimmerFrameLayout>
+
+    <!-- Спиннер для сортировки -->
+    <Spinner
+        android:id="@+id/sortSpinner"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:minWidth="120dp"
+        android:layout_margin="16dp"
+        android:padding="8dp"
+        android:backgroundTint="?attr/colorPrimary"
+        app:layout_constraintTop_toBottomOf="@id/shimmerLayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/buttonAdd"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layoutManager="LinearLayoutManager" />
+        app:layout_constraintTop_toBottomOf="@id/sortSpinner"
+        app:layout_constraintBottom_toTopOf="@id/buttonAddUpdate"
+        android:visibility="gone"/>
 
+    <!-- Текст ошибки -->
+    <TextView
+        android:id="@+id/errorTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/holo_red_dark"
+        android:visibility="gone"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        android:text="@string/errLoad"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Кнопка добавления/обновления -->
     <Button
-        android:id="@+id/buttonAdd"
+        android:id="@+id/buttonAddUpdate"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
@@ -28,7 +78,6 @@
         android:fontFamily="sans-serif-medium"
         android:backgroundTint="#6200EE"
         android:padding="12dp"
-        android:shape="rectangle"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
