@@ -3,32 +3,122 @@ package com.example.android_course_t_bank
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import domain.Library
 import domain.LibraryObj
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class LibraryViewModel : ViewModel() {
-    private val _items = MutableLiveData<List<LibraryObj>>(emptyList())
-    val items: LiveData<List<LibraryObj>> get() = _items
+    private val _state = MutableLiveData<State<List<LibraryObj>>>(State.Loading())
+    val state: LiveData<State<List<LibraryObj>>> get() = _state
 
-    // Объединение всех объектов библиотеки в один список
+    private var runningJob: Job? = null
+
+    var countDataAsk = 0
+    private val lastSuccessfulList = mutableListOf<LibraryObj>()
+
     fun loadItems(library: Library) {
-        val allItems = mutableListOf<LibraryObj>().apply {
-            addAll(library.getBooks())
-            addAll(library.getNewspapers())
-            addAll(library.getDisks())
+        //println("LOAD_ITEMS")
+        runningJob?.cancel() // отмена предыдущей загрузки при наличии
+        runningJob = viewModelScope.launch {
+            try {
+                // установка состояния загрузки
+                _state.value = State.Loading()
+                // симуляция задержки
+                delay(1000)
+                // получение данных
+                val allItems = mutableListOf<LibraryObj>().apply {
+                    addAll(library.getBooks())
+                    addAll(library.getNewspapers())
+                    addAll(library.getDisks())
+                }
+                // инкремент и рандомизированная ошибка на каждое 5-е обращение
+                countDataAsk++
+                if (countDataAsk % 5 == 0) {
+                    throw Exception("Симулированная ошибка загрузки данных.")
+                }
+                // установка состояния с данными
+                _state.value = State.Data(allItems)
+                lastSuccessfulList.clear()
+                lastSuccessfulList.addAll(allItems)
+            } catch (e: Exception) {
+                // установка состояния ошибки
+                _state.value = State.Error("Произошла ошибка: ${e.message}")
+            }
         }
-        _items.value = allItems
     }
 
     fun addItem(obj: LibraryObj) {
-        val current = _items.value?.toMutableList() ?: mutableListOf()
-        current.add(obj)
-        _items.value = current
+        //println("ADD_ITEMS")
+        runningJob?.cancel() // отмена предыдущей загрузки при наличии
+        runningJob = viewModelScope.launch {
+            try {
+                // установка состояния загрузки
+                _state.value = State.Loading()
+                // симуляция задержки
+                delay((100..2000).random().toLong())
+                // инкремент и рандомизированная ошибка на каждое 5-е обращение
+                countDataAsk++
+                if (countDataAsk % 5 == 0) {
+                    throw Exception("Симулированная ошибка добавления элемента.")
+                }
+                // добавление нового элемента в список
+                lastSuccessfulList.add(obj)
+                _state.value = State.Data(lastSuccessfulList.toList())
+            } catch (e: Exception) {
+                // установка состояния ошибки
+                _state.value = State.Error("Произошла ошибка при добавлении: ${e.message}")
+            }
+        }
     }
 
-    fun removeItem(position: Int) {
-        val current = _items.value?.toMutableList() ?: return
-        current.removeAt(position)
-        _items.value = current
+    fun removeItem(position: Int, onError: (() -> Unit)? = null) {
+        //println("REMOVE_ITEMS")
+        runningJob?.cancel() // отмена предыдущей загрузки при наличии
+        runningJob = viewModelScope.launch {
+            try {
+                // установка состояния загрузки
+                _state.value = State.Loading()
+                // симуляция задержки
+                delay((100..2000).random().toLong())
+                // инкремент и рандомизированная ошибка на каждое 5-е обращение
+                countDataAsk++
+                if (countDataAsk % 5 == 0) {
+                    throw Exception("Симулированная ошибка удаления элемента.")
+                }
+                // удаление элемента из списка
+                lastSuccessfulList.removeAt(position)
+                _state.value = State.Data(lastSuccessfulList.toList())
+            } catch (e: Exception) {
+                //println("ERROR!")
+                // установка состояния ошибки
+                _state.value = State.Error("Произошла ошибка при удалении: ${e.message}")
+                onError?.invoke()
+            }
+        }
+    }
+
+    fun refreshFromLastSuccessful() {
+        runningJob?.cancel() // отмена предыдущей загрузки при наличии
+        runningJob = viewModelScope.launch {
+            try {
+                // установка состояния загрузки
+                _state.value = State.Loading()
+                // симуляция задержки
+                delay((100..2000).random().toLong())
+                // инкремент и рандомизированная ошибка на каждое 5-е обращение
+                countDataAsk++
+                if (countDataAsk % 5 == 0) {
+                    throw Exception("Симулированная ошибка обновления.")
+                }
+                // обновление списка
+                _state.value = State.Data(lastSuccessfulList.toList())
+            } catch (e: Exception) {
+                // установка состояния ошибки
+                _state.value = State.Error("Произошла ошибка при обновлении: ${e.message}")
+            }
+        }
     }
 }
