@@ -8,7 +8,7 @@ import androidx.room.RoomDatabase
  */
 @Database(
     entities = [BookEntity::class, NewspaperEntity::class, DiskEntity::class],
-    version = 1
+    version = 2
 )
 abstract class LibraryDatabase : RoomDatabase() {
     abstract fun libraryDao(): LibraryDao

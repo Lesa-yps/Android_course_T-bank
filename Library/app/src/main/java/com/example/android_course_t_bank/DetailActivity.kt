@@ -8,12 +8,14 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.children
 import domain.*
+import kotlin.collections.find
 
 
 class DetailActivity : AppCompatActivity() {
     private lateinit var formContainer: LinearLayout
     private var selectedType: String = "Книга"
     private var isReadOnly: Boolean = false
+    private var objSave: LibraryObj? = null
 
     companion object {
         const val LIB_OBJ = "libraryObj"
@@ -34,10 +36,11 @@ class DetailActivity : AppCompatActivity() {
         formContainer = findViewById(R.id.formContainer)
 
         isReadOnly = intent.getBooleanExtra(READ_ONLY, false)
-        @Suppress("DEPRECATION") val obj = intent.getSerializableExtra(LIB_OBJ) as? LibraryObj
+        @Suppress("DEPRECATION")
+        objSave = intent.getSerializableExtra(LIB_OBJ) as? LibraryObj
 
         // установка типа в зависимости от переданного объекта
-        selectedType = when (obj) {
+        selectedType = when (objSave) {
             is Newspaper -> "Газета"
             is Disk -> "Диск"
             else -> "Книга"
@@ -45,9 +48,9 @@ class DetailActivity : AppCompatActivity() {
 
         // рендер формы
         when (selectedType) {
-            "Книга" -> renderFormForBook(obj as? Book)
-            "Газета" -> renderFormForNewspaper(obj as? Newspaper)
-            "Диск" -> renderFormForDisk(obj as? Disk)
+            "Книга" -> renderFormForBook(objSave as? Book)
+            "Газета" -> renderFormForNewspaper(objSave as? Newspaper)
+            "Диск" -> renderFormForDisk(objSave as? Disk)
         }
 
         // в зависимости от кнопок сверху рендерятся поля под разные объекты библиотеки
@@ -78,12 +81,10 @@ class DetailActivity : AppCompatActivity() {
             renderFormForDisk()
         }
 
-        // кнопочка "Сохранить" или "Назад"
+        // кнопочка "Сохранить"
         findViewById<Button>(R.id.buttonSave).apply {
-            text = if (isReadOnly) "Назад" else "Сохранить"
             setOnClickListener {
-                if (isReadOnly) { finish()
-                } else { saveObject() }
+                saveObject()
             }
         }
     }
@@ -139,7 +140,7 @@ class DetailActivity : AppCompatActivity() {
             this.text = text
             this.tag = tag
             this.isChecked = value
-            isEnabled = !isReadOnly
+            isEnabled = true
         }
         formContainer.addView(checkBox)
     }
@@ -147,9 +148,31 @@ class DetailActivity : AppCompatActivity() {
 
     // достаются значения из полей, формируется библиотечный объект и возвращается вызвавшему коду
     private fun saveObject() {
+        if (isReadOnly) {
+            val isAvailableNew = (formContainer.children.find { it.tag == "checkBoxAvailable" } as? CheckBox)?.isChecked == true
+            objSave?.isAvailable = isAvailableNew
+        }
+        else {
+            objSave = formingObject()
+            if (objSave == null) return
+        }
+
+        objSave?.let {
+            val resultIntent = Intent().putExtra(LIB_OBJ, it)
+            setResult(RESULT_OK, resultIntent)
+            finish()
+        }
+        setResult(RESULT_CANCELED)
+    }
+
+    private fun formingObject() : LibraryObj? {
         val values = formContainer.children.toList()
 
-        val id = (values.find { it.tag == "editTextId" } as? EditText)?.text.toString().toIntOrNull() ?: 0
+        val id = (values.find { it.tag == "editTextId" } as? EditText)?.text.toString().toIntOrNull()
+        if (id == null || id < 0) {
+            Toast.makeText(this, "Некорректный ID. Введите неотрицательное целое число.", Toast.LENGTH_SHORT).show()
+            return null
+        }
         val name = (values.find { it.tag == "editTextName" } as? EditText)?.text.toString()
         val isAvailable = (values.find { it.tag == "checkBoxAvailable" } as? CheckBox)?.isChecked == true
         val addedDate = System.currentTimeMillis()
@@ -177,12 +200,6 @@ class DetailActivity : AppCompatActivity() {
             }
             else -> null
         }
-
-        obj?.let {
-            val resultIntent = Intent().putExtra(LIB_OBJ, it)
-            setResult(RESULT_OK, resultIntent)
-            finish()
-        }
-        setResult(RESULT_CANCELED)
+        return obj
     }
 }

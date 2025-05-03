@@ -10,7 +10,8 @@ data class BookEntity(
     val isAvailable: Boolean,
     val name: String,
     val pages: Int,
-    val author: String
+    val author: String,
+    val addedDate: Long
 )
 
 @Entity(tableName = "newspapers")
@@ -19,7 +20,8 @@ data class NewspaperEntity(
     val isAvailable: Boolean,
     val name: String,
     val issueNumber: Int,
-    val month: Int
+    val month: Int,
+    val addedDate: Long
 )
 
 @Entity(tableName = "disks")
@@ -27,5 +29,6 @@ data class DiskEntity(
     @PrimaryKey val id: Int,
     val isAvailable: Boolean,
     val name: String,
-    val type: String
+    val type: String,
+    val addedDate: Long
 )

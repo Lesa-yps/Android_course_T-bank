@@ -20,6 +20,7 @@ import room.LibraryDatabase
 import android.widget.Spinner
 import android.widget.ArrayAdapter
 import androidx.annotation.RequiresApi
+import room.MIGRATION_1_2
 
 
 class MainActivity : AppCompatActivity() {
@@ -43,7 +44,7 @@ class MainActivity : AppCompatActivity() {
         db = Room.databaseBuilder(
             applicationContext,
             LibraryDatabase::class.java, "library.db"
-        ).build()
+        ).addMigrations(MIGRATION_1_2).build()
         dao = db.libraryDao()
 
         // Создание ViewModel через фабрику
@@ -69,7 +70,10 @@ class MainActivity : AppCompatActivity() {
             }
         )
 
-        adapter = LibraryAdapter(mutableListOf())
+        adapter = LibraryAdapter(mutableListOf()) { selectedObj ->
+            val intent = DetailActivity.createIntent(this, selectedObj, isReadOnly = true)
+            addItemLauncher.launch(intent)
+        }
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
 
@@ -145,14 +149,18 @@ class MainActivity : AppCompatActivity() {
                 val lastVisibleItem = layoutManager.findLastVisibleItemPosition()
                 val totalItemCount = layoutManager.itemCount
 
-                // подгрузка следующих стр, когда долистали почти до конца
-                if (lastVisibleItem >= totalItemCount - 5) {
-                    viewModel.loadNextPage()
-                }
-
-                // подгрузка предыдущих страниц, когда листаем вверх
-                if (firstVisibleItem <= 5) {
-                    viewModel.loadPreviousPage()
+                if (dy > 0) {
+                    // Пользователь скроллит вниз → подгружаем следующую страницу
+                    if (lastVisibleItem >= totalItemCount - LibraryViewModel.SAVE_LOAD_COUNT_ITEMS) {
+                        println("*** SCROLL ↓ last=$lastVisibleItem / total=$totalItemCount")
+                        viewModel.loadNextPage(firstVisibleItem, lastVisibleItem)
+                    }
+                } else if (dy < 0) {
+                    // Пользователь скроллит вверх → подгружаем предыдущую страницу
+                    if (firstVisibleItem <= LibraryViewModel.SAVE_LOAD_COUNT_ITEMS) {
+                        println("*** SCROLL ↑ first=$firstVisibleItem / total=$totalItemCount")
+                        viewModel.loadPreviousPage(firstVisibleItem, lastVisibleItem)
+                    }
                 }
             }
         })
@@ -177,6 +185,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 saveSortType(this@MainActivity, selectedSortType)
                 viewModel.sortCurrentItems(selectedSortType)
+                recyclerView.scrollToPosition(0)
             }
 
             override fun onNothingSelected(parent: AdapterView<*>) {}

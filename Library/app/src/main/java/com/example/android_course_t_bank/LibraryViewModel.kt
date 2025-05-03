@@ -1,7 +1,5 @@
 package com.example.android_course_t_bank
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -17,6 +15,8 @@ import kotlinx.coroutines.launch
 import room.LibraryDao
 import room.toDomain
 import room.toEntity
+import kotlin.coroutines.cancellation.CancellationException
+
 
 class LibraryViewModel(
     private val dao: LibraryDao,
@@ -26,105 +26,110 @@ class LibraryViewModel(
     private val _state = MutableLiveData<State<List<LibraryObj>>>(State.Loading())
     val state: LiveData<State<List<LibraryObj>>> get() = _state
 
-    private var allItems: List<LibraryObj> = emptyList()
-    private var visibleItems: MutableList<LibraryObj> = mutableListOf()
+    private var visibleItems: MutableList<LibraryObj> = mutableListOf() // видимые в данный момент элементы
 
     private var runningJob: Job? = null
-    private var countDataAsk = 0
 
-    // параметры пагинации
-    private val initialLoadCount = 30
-    private val pageLoadCount = 15
-
-    private var startIndex = 0
+    private val pageLoadCountItems = 15 // количество элементов, загружаемых в память для отображения
+    private var countAllItems = 0 // общее количество элементов в БД
     private var isLoading = false // ~ мьютекс
 
-    fun loadInitialItems() {
+    private var offsetBooks = 0
+    private var offsetNewspapers = 0
+    private var offsetDisks = 0
+
+    private suspend fun getLoadItems(loadCountItems: Int = pageLoadCountItems, startInd: Int = 0, endInd: Int = pageLoadCountItems, offsetLoadBooks: Int = offsetBooks,
+                  offsetLoadNewspapers: Int = offsetNewspapers, offsetLoadDisks: Int = offsetDisks): List<LibraryObj> {
+        val pageLoadItems = when (currentSortType) {
+            SortType.BY_NAME -> mutableListOf<LibraryObj>().apply {
+                addAll(dao.getBooksSortedByName(loadCountItems, offsetLoadBooks).map { it.toDomain() })
+                addAll(dao.getNewspapersSortedByName(loadCountItems, offsetLoadNewspapers).map { it.toDomain() })
+                addAll(dao.getDisksSortedByName(loadCountItems, offsetLoadDisks).map { it.toDomain() })
+            }
+            SortType.BY_DATE -> mutableListOf<LibraryObj>().apply {
+                addAll(dao.getBooksSortedByDate(loadCountItems, offsetLoadBooks).map { it.toDomain() })
+                addAll(dao.getNewspapersSortedByDate(loadCountItems, offsetLoadNewspapers).map { it.toDomain() })
+                addAll(dao.getDisksSortedByDate(loadCountItems, offsetLoadDisks).map { it.toDomain() })
+            }
+        }
+        val res = sortItems(pageLoadItems, currentSortType)
+        val start = startInd.coerceAtLeast(0)
+        val end = endInd.coerceAtMost(res.size).coerceAtLeast(res.size)
+        //println("*** ??? START=$start END=$end was_start=$startInd was_end=$endInd")
+        return res.subList(start, end)
+    }
+
+    private fun loadItems() {
         runningJob?.cancel()
         runningJob = viewModelScope.launch {
             try {
+                //println("*** LOAD_ITEMS\n*** offsetBooks=$offsetBooks offsetNewspapers=$offsetNewspapers offsetDisks=$offsetDisks")
                 _state.value = State.Loading()
-                delay(500)
-
-                allItems = mutableListOf<LibraryObj>().apply {
-                    addAll(dao.getAllBooks().map { it.toDomain() })
-                    addAll(dao.getAllNewspapers().map { it.toDomain() })
-                    addAll(dao.getAllDisks().map { it.toDomain() })
-                }
-                println(allItems)
-                allItems = sortItems(allItems, currentSortType)
-                println(allItems)
-
-                countDataAsk++
-                if (countDataAsk % 5 == 0) {
-                    throw Exception("Симулированная ошибка загрузки данных.")
-                }
-
-                startIndex = 0
-                visibleItems = allItems.take(initialLoadCount).toMutableList()
+                //delay(500)
+                visibleItems = getLoadItems() as MutableList<LibraryObj>
                 _state.value = State.Data(visibleItems.toList())
 
+                countAllItems = dao.getCountAllItems()
             } catch (e: Exception) {
-                _state.value = State.Error("Произошла ошибка: ${e.message}")
+                if (e !is CancellationException) {
+                    //println("*** ERROR произошла ошибка: ${e.message}")
+                    _state.value = State.Error("Произошла ошибка: ${e.message}")
+                }
             }
         }
     }
 
-    fun loadNextPage() {
+    fun loadNextPage(firstVisibleInd: Int, lastVisibleInd: Int) {
         if (isLoading) return
+        val offsetSum = offsetBooks + offsetNewspapers + offsetDisks
+        if (offsetSum == countAllItems) return // конец списка
+        if (firstVisibleInd <= SAVE_LOAD_COUNT_ITEMS) return // сдвига нет
         isLoading = true
-        if (startIndex + visibleItems.size >= allItems.size) return // конец списка
 
         viewModelScope.launch {
-            val nextItems = allItems.drop(startIndex + visibleItems.size).take(pageLoadCount)
-            visibleItems.addAll(nextItems)
-            val removeCount = minOf(pageLoadCount, visibleItems.size - initialLoadCount)
-            repeat(removeCount) { visibleItems.removeAt(0) }
-            startIndex += removeCount
-
-            _state.value = State.Data(visibleItems.toList())
+            //println("*** LOAD_NEXT_PAGE firstVisibleInd=$firstVisibleInd lastVisibleInd=$lastVisibleInd\n*** offsetBooks=$offsetBooks offsetNewspapers=$offsetNewspapers offsetDisks=$offsetDisks")
+            val prevVisibleItems = visibleItems.subList(0, firstVisibleInd - SAVE_LOAD_COUNT_ITEMS)
+            offsetBooks += prevVisibleItems.count {it is Book}
+            offsetNewspapers += prevVisibleItems.count {it is Newspaper}
+            offsetDisks += prevVisibleItems.count {it is Disk}
+            loadItems()
+            isLoading = false
         }
-        isLoading = false
     }
 
-    @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
-    fun loadPreviousPage() {
+    fun loadPreviousPage(firstVisibleInd: Int, lastVisibleInd: Int) {
         if (isLoading) return
+        if (firstVisibleInd >= SAVE_LOAD_COUNT_ITEMS) return // начало списка
+        if (lastVisibleInd + SAVE_LOAD_COUNT_ITEMS >= pageLoadCountItems) return // сдвига нет
         isLoading = true
-        if (startIndex == 0) return // начало списка
 
         viewModelScope.launch {
-            val prevStart = maxOf(startIndex - pageLoadCount, 0)
-            val prevItems = allItems.subList(prevStart, startIndex)
-            visibleItems.addAll(0, prevItems)
-            val removeCount = minOf(pageLoadCount, visibleItems.size - initialLoadCount)
-            repeat(removeCount) { visibleItems.removeLast() }
-            startIndex = prevStart
-
-            _state.value = State.Data(visibleItems.toList())
+            //println("*** LOAD_PREV_PAGE firstVisibleInd=$firstVisibleInd lastVisibleInd=$lastVisibleInd\n*** offsetBooks=$offsetBooks offsetNewspapers=$offsetNewspapers offsetDisks=$offsetDisks")
+            val newOffsetBooks = (offsetBooks - pageLoadCountItems).coerceAtLeast(0)
+            val newOffsetNewspapers = (offsetNewspapers - pageLoadCountItems).coerceAtLeast(0)
+            val newOffsetDisks = (offsetDisks - pageLoadCountItems).coerceAtLeast(0)
+            val loadCountItems = (offsetBooks - newOffsetBooks) + (offsetNewspapers - newOffsetNewspapers) + (offsetDisks - newOffsetDisks)
+            val countVisibleItems = lastVisibleInd - firstVisibleInd + 1
+            val prevItems = getLoadItems(loadCountItems, loadCountItems - pageLoadCountItems, loadCountItems - countVisibleItems, newOffsetBooks, newOffsetNewspapers, newOffsetDisks)
+            //println("*** ??? newOffsetBooks=$newOffsetBooks, newOffsetNewspapers=$newOffsetNewspapers, newOffsetDisks=$newOffsetDisks, loadCountItems=$loadCountItems, countVisibleItems=$countVisibleItems, prevItems=$prevItems")
+            offsetBooks -= prevItems.count { it is Book }
+            offsetNewspapers -= prevItems.count { it is Newspaper }
+            offsetDisks -= prevItems.count { it is Disk }
+            loadItems()
+            isLoading = false
         }
-        isLoading = false
     }
 
     fun addItem(obj: LibraryObj) {
         runningJob?.cancel()
         runningJob = viewModelScope.launch {
             try {
-                _state.value = State.Loading()
-                delay((100..2000).random().toLong())
-
-                countDataAsk++
-                if (countDataAsk % 5 == 0) {
-                    throw Exception("Симулированная ошибка добавления элемента.")
-                }
-
                 when (obj) {
                     is Book -> dao.insertBook(obj.toEntity())
                     is Newspaper -> dao.insertNewspaper(obj.toEntity())
                     is Disk -> dao.insertDisk(obj.toEntity())
                 }
-
-                loadInitialItems()
+                loadItems()
             } catch (e: Exception) {
                 _state.value = State.Error("Произошла ошибка при добавлении: ${e.message}")
             }
@@ -135,21 +140,12 @@ class LibraryViewModel(
         runningJob?.cancel()
         runningJob = viewModelScope.launch {
             try {
-                _state.value = State.Loading()
-                delay((100..2000).random().toLong())
-
-                countDataAsk++
-                if (countDataAsk % 5 == 0) {
-                    throw Exception("Симулированная ошибка удаления элемента.")
-                }
-
                 when (obj) {
                     is Book -> dao.deleteBook(obj.toEntity())
                     is Newspaper -> dao.deleteNewspaper(obj.toEntity())
                     is Disk -> dao.deleteDisk(obj.toEntity())
                 }
-
-                loadInitialItems()
+                loadItems()
             } catch (e: Exception) {
                 _state.value = State.Error("Произошла ошибка при удалении: ${e.message}")
                 onError?.invoke()
@@ -157,9 +153,20 @@ class LibraryViewModel(
         }
     }
 
+    fun loadInitialItems() {
+        offsetBooks = 0
+        offsetDisks = 0
+        offsetNewspapers = 0
+        loadItems()
+    }
+
     fun sortCurrentItems(sortType: SortType) {
         currentSortType = sortType
         loadInitialItems()
+    }
+
+    companion object {
+        const val SAVE_LOAD_COUNT_ITEMS = 5
     }
 }
 
