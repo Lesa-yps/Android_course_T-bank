@@ -30,6 +30,8 @@ import domain.Book
 import room.MIGRATION_1_2
 
 
+val MIN_COUNT_LETTERS_TO_SEARCH = 3
+
 class MainActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var shimmerLayout: ShimmerFrameLayout
@@ -90,7 +92,7 @@ class MainActivity : AppCompatActivity() {
             override fun afterTextChanged(s: Editable?) {
                 val titleLength = etTitle.text.length
                 val authorLength = etAuthor.text.length
-                btnSearch.isEnabled = titleLength >= 3 || authorLength >= 3
+                btnSearch.isEnabled = titleLength >= MIN_COUNT_LETTERS_TO_SEARCH || authorLength >= MIN_COUNT_LETTERS_TO_SEARCH
             }
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
