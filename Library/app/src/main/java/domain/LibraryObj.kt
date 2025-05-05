@@ -2,7 +2,7 @@ package domain
 
 import java.io.Serializable
 
-abstract class LibraryObj(val id: Int, var isAvailable: Boolean, val name: String): Serializable {
+abstract class LibraryObj(val id: Int, var isAvailable: Boolean, val name: String, val addedDate: Long? = null): Serializable {
 
     abstract val humanReadableType: String
 
@@ -20,13 +20,8 @@ abstract class LibraryObj(val id: Int, var isAvailable: Boolean, val name: Strin
         }
     }
 
-    fun changeAvailable() {
-        isAvailable = ! isAvailable
-    }
-
     fun myGetId(): Int = id
     fun myGetName(): String = name
-    fun myGetHumanReadableType(): String = humanReadableType
     fun myGetIsAvailable(): Boolean = isAvailable
 
     abstract fun showLongInfo()
