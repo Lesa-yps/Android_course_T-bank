@@ -3,8 +3,8 @@ package domain
 import java.io.Serializable
 
 
-class Newspaper(id: Int, isAvailable: Boolean, name: String, val issueNumber: Int, val month: Int) :
-        LibraryObj(id, isAvailable, name), LibraryReadableHere, LibraryDigitizable {
+class Newspaper(id: Int, isAvailable: Boolean, name: String, val issueNumber: Int, val month: Int, addedDate: Long? = null) :
+        LibraryObj(id, isAvailable, name, addedDate), LibraryReadableHere, LibraryDigitizable {
 
     override val humanReadableType = "Газета"
 

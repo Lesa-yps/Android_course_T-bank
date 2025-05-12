@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
+    id("kotlin-kapt")
 }
 
 android {
@@ -41,7 +43,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -64,7 +65,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    implementation(libs.javafaker)
     implementation(libs.androidx.recyclerview)
     implementation(libs.androidx.constraintlayout.v214)
     implementation(libs.androidx.cardview)
@@ -74,4 +74,9 @@ dependencies {
 
     implementation(libs.shimmer)
     implementation(libs.kotlinx.coroutines.android)
+
+    implementation(libs.androidx.room.ktx)
+
+    implementation(project(":domain"))
+    implementation(project(":data"))
 }
