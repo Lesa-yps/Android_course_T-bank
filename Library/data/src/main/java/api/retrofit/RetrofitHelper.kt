@@ -9,7 +9,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.OkHttpClient
 
 
-internal object RetrofitHelper {
+object RetrofitHelper {
 
     private const val BASE_URL = "https://www.googleapis.com/books/v1/"
 

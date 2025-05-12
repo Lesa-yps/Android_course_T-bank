@@ -1,4 +1,4 @@
-package com.example.android_course_t_bank
+package viewmodel
 
 import android.util.Log
 import androidx.lifecycle.LiveData
@@ -6,7 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import api.repository.BookResponseMapper
+import api.mapper.BookResponseMapper
 import api.retrofit.RetrofitHelper
 import domain.Book
 import domain.Disk
@@ -17,6 +17,8 @@ import kotlinx.coroutines.launch
 import room.LibraryDao
 import room.toDomain
 import room.toEntity
+import utils.SortType
+import utils.sortItems
 import kotlin.coroutines.cancellation.CancellationException
 
 

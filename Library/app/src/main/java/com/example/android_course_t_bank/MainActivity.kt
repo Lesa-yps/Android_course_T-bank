@@ -28,9 +28,15 @@ import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import domain.Book
 import room.MIGRATION_1_2
+import utils.SortType
+import utils.getSavedSortType
+import utils.saveSortType
+import viewmodel.LibraryViewModel
+import viewmodel.LibraryViewModelFactory
+import viewmodel.State
 
 
-val MIN_COUNT_LETTERS_TO_SEARCH = 3
+const val MIN_COUNT_LETTERS_TO_SEARCH = 3
 
 class MainActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
