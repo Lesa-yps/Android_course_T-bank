@@ -1,10 +1,10 @@
-package api.repository
+package api.mapper
 
 import api.model.BookResponse
 import domain.Book
 import kotlin.math.absoluteValue
 
-internal object BookResponseMapper {
+object BookResponseMapper {
     fun map(response: BookResponse): Book {
         // генерируется уникальный ID (используется ISBN если есть, иначе ID от Google)
         val uniqueId = response.volumeInfo.industryIdentifiers
