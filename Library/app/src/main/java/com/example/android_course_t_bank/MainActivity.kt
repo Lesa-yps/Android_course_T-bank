@@ -3,17 +3,24 @@ package com.example.android_course_t_bank
 import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.widget.AdapterView
 import android.widget.Button
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.room.Room
 import com.facebook.shimmer.ShimmerFrameLayout
-import domain.Library
 import domain.LibraryObj
+import room.LibraryDao
+import room.LibraryDatabase
+import android.widget.Spinner
+import android.widget.ArrayAdapter
+import androidx.annotation.RequiresApi
+import room.MIGRATION_1_2
 
 
 class MainActivity : AppCompatActivity() {
@@ -21,13 +28,29 @@ class MainActivity : AppCompatActivity() {
     private lateinit var shimmerLayout: ShimmerFrameLayout
     private lateinit var errorTextView: TextView
     private lateinit var buttonAddUpdate: Button
-    private val library = Library()
-    private val viewModel: LibraryViewModel by viewModels()
+    private lateinit var viewModel: LibraryViewModel
     private lateinit var adapter: LibraryAdapter
+    private lateinit var sortSpinner: Spinner
+    private lateinit var adapterSpinner: ArrayAdapter<String>
+
+    private lateinit var db: LibraryDatabase
+    private lateinit var dao: LibraryDao
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // инициализация базы данных
+        db = Room.databaseBuilder(
+            applicationContext,
+            LibraryDatabase::class.java, "library.db"
+        ).addMigrations(MIGRATION_1_2).build()
+        dao = db.libraryDao()
+
+        // Создание ViewModel через фабрику
+        val currentSortType = getSavedSortType(this)
+        val factory = LibraryViewModelFactory(dao, currentSortType)
+        viewModel = ViewModelProvider(this, factory)[LibraryViewModel::class.java]
 
         recyclerView = findViewById(R.id.recyclerView)
         shimmerLayout = findViewById(R.id.shimmerLayout)
@@ -35,7 +58,22 @@ class MainActivity : AppCompatActivity() {
 
         buttonAddUpdate = findViewById<Button>(R.id.buttonAddUpdate)
 
-        adapter = LibraryAdapter(mutableListOf())
+        sortSpinner = findViewById<Spinner>(R.id.sortSpinner)
+        val sortOptions = listOf("сортировка по наименованию", "сортировка по дате добавления")
+        adapterSpinner = ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, sortOptions)
+        adapterSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        sortSpinner.adapter = adapterSpinner
+        sortSpinner.setSelection(
+            when (currentSortType) {
+                SortType.BY_NAME -> 0
+                SortType.BY_DATE -> 1
+            }
+        )
+
+        adapter = LibraryAdapter(mutableListOf()) { selectedObj ->
+            val intent = DetailActivity.createIntent(this, selectedObj, isReadOnly = true)
+            addItemLauncher.launch(intent)
+        }
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
 
@@ -75,7 +113,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        viewModel.loadItems(library)
+        viewModel.loadInitialItems()
 
         val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
             0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
@@ -88,8 +126,9 @@ class MainActivity : AppCompatActivity() {
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val position = viewHolder.bindingAdapterPosition
+                val swipedObject = adapter.getItem(position)
                 viewModel.removeItem(
-                    position = position,
+                    obj = swipedObject,
                     onError = {
                         // возврат элемента в адаптер
                         adapter.notifyItemChanged(position)
@@ -99,16 +138,57 @@ class MainActivity : AppCompatActivity() {
         })
         itemTouchHelper.attachToRecyclerView(recyclerView)
 
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                val layoutManager = recyclerView.layoutManager as? LinearLayoutManager ?: return
+
+                val firstVisibleItem = layoutManager.findFirstVisibleItemPosition()
+                val lastVisibleItem = layoutManager.findLastVisibleItemPosition()
+                val totalItemCount = layoutManager.itemCount
+
+                if (dy > 0) {
+                    // Пользователь скроллит вниз → подгружаем следующую страницу
+                    if (lastVisibleItem >= totalItemCount - LibraryViewModel.SAVE_LOAD_COUNT_ITEMS) {
+                        println("*** SCROLL ↓ last=$lastVisibleItem / total=$totalItemCount")
+                        viewModel.loadNextPage(firstVisibleItem, lastVisibleItem)
+                    }
+                } else if (dy < 0) {
+                    // Пользователь скроллит вверх → подгружаем предыдущую страницу
+                    if (firstVisibleItem <= LibraryViewModel.SAVE_LOAD_COUNT_ITEMS) {
+                        println("*** SCROLL ↑ first=$firstVisibleItem / total=$totalItemCount")
+                        viewModel.loadPreviousPage(firstVisibleItem, lastVisibleItem)
+                    }
+                }
+            }
+        })
+
         buttonAddUpdate.setOnClickListener {
             when (viewModel.state.value) {
                 is State.Error -> {
-                    viewModel.refreshFromLastSuccessful()
+                    viewModel.loadInitialItems()
                 }
                 else -> {
                     val intent = DetailActivity.createIntent(this, null, isReadOnly = false)
                     addItemLauncher.launch(intent)
                 }
             }
+        }
+
+        sortSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                val selectedSortType = when (position) {
+                    0 -> SortType.BY_NAME
+                    else -> SortType.BY_DATE
+                }
+                saveSortType(this@MainActivity, selectedSortType)
+                viewModel.sortCurrentItems(selectedSortType)
+                recyclerView.scrollToPosition(0)
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {}
         }
     }
 

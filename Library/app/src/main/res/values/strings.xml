@@ -53,4 +53,5 @@
     <string name="defText">Какой-то текст</string>
     <string name="readonly_field">%1$s: %2$s</string>
     <string name="errLoad">Ошибка загрузки</string>
+    <string name="saveText">Сохранить</string>
 </resources>
