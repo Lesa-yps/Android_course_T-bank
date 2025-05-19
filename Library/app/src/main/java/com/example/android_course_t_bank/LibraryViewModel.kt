@@ -185,6 +185,7 @@ class LibraryViewModel(
                 }
             }
         }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 
     companion object {
