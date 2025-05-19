@@ -13,8 +13,11 @@ import domain.LibraryObj
 import domain.Newspaper
 
 
-class LibraryAdapter(private val items: MutableList<LibraryObj>, private val onItemClick: (LibraryObj) -> Unit):
-        RecyclerView.Adapter<LibraryAdapter.LibraryViewHolder>() {
+class LibraryAdapter(
+    private val items: MutableList<LibraryObj>,
+    private val onItemClick: (LibraryObj) -> Unit,
+    private val onItemLongClick: (LibraryObj) -> Unit
+): RecyclerView.Adapter<LibraryAdapter.LibraryViewHolder>() {
 
     // Объект, который хранит ссылки на элементы карточки
     class LibraryViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -56,6 +59,10 @@ class LibraryAdapter(private val items: MutableList<LibraryObj>, private val onI
         // Реакция на клик - вызов onItemClick
         holder.itemView.setOnClickListener {
             onItemClick(item)
+        }
+        holder.itemView.setOnLongClickListener {
+            onItemLongClick(item)
+            true
         }
     }
 

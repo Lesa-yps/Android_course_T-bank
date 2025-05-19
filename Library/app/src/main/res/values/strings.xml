@@ -54,4 +54,9 @@
     <string name="readonly_field">%1$s: %2$s</string>
     <string name="errLoad">Ошибка загрузки</string>
     <string name="saveText">Сохранить</string>
+    <string name="google_books">Google Books</string>
+    <string name="library">Библиотека</string>
+    <string name="titleBook">Название книги</string>
+    <string name="authorBook">Автор книги</string>
+    <string name="Search">Поиск</string>
 </resources>

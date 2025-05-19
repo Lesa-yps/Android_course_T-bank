@@ -2,6 +2,8 @@ package com.example.android_course_t_bank
 
 import android.os.Build
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
 import android.widget.AdapterView
 import android.widget.Button
@@ -19,9 +21,16 @@ import room.LibraryDao
 import room.LibraryDatabase
 import android.widget.Spinner
 import android.widget.ArrayAdapter
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat
+import domain.Book
 import room.MIGRATION_1_2
 
+
+val MIN_COUNT_LETTERS_TO_SEARCH = 3
 
 class MainActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
@@ -36,6 +45,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var db: LibraryDatabase
     private lateinit var dao: LibraryDao
 
+    private lateinit var btnLocalLibrary: Button
+    private lateinit var btnGoogleBooks: Button
+    private lateinit var searchForm: LinearLayout
+    private lateinit var etTitle: EditText
+    private lateinit var etAuthor: EditText
+    private lateinit var btnSearch: Button
+
+    private var isGoogleBooksMode = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -47,7 +65,7 @@ class MainActivity : AppCompatActivity() {
         ).addMigrations(MIGRATION_1_2).build()
         dao = db.libraryDao()
 
-        // Создание ViewModel через фабрику
+        // создание ViewModel через фабрику
         val currentSortType = getSavedSortType(this)
         val factory = LibraryViewModelFactory(dao, currentSortType)
         viewModel = ViewModelProvider(this, factory)[LibraryViewModel::class.java]
@@ -57,6 +75,33 @@ class MainActivity : AppCompatActivity() {
         errorTextView = findViewById(R.id.errorTextView)
 
         buttonAddUpdate = findViewById<Button>(R.id.buttonAddUpdate)
+
+        btnLocalLibrary = findViewById(R.id.btnLocalLibrary)
+        btnGoogleBooks = findViewById(R.id.btnGoogleBooks)
+        searchForm = findViewById(R.id.searchForm)
+        etTitle = findViewById(R.id.etTitle)
+        etAuthor = findViewById(R.id.etAuthor)
+        btnSearch = findViewById(R.id.btnSearch)
+
+        // обработчики переключения режимов
+        btnLocalLibrary.setOnClickListener { switchToLocalLibrary() }
+        btnGoogleBooks.setOnClickListener { switchToGoogleBooks() }
+
+        // проверка активности кнопки поиска
+        val textWatcher = object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                val titleLength = etTitle.text.length
+                val authorLength = etAuthor.text.length
+                btnSearch.isEnabled = titleLength >= MIN_COUNT_LETTERS_TO_SEARCH || authorLength >= MIN_COUNT_LETTERS_TO_SEARCH
+            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        }
+
+        etTitle.addTextChangedListener(textWatcher)
+        etAuthor.addTextChangedListener(textWatcher)
+
+        btnSearch.setOnClickListener { performGoogleBooksSearch() }
 
         sortSpinner = findViewById<Spinner>(R.id.sortSpinner)
         val sortOptions = listOf("сортировка по наименованию", "сортировка по дате добавления")
@@ -70,10 +115,21 @@ class MainActivity : AppCompatActivity() {
             }
         )
 
-        adapter = LibraryAdapter(mutableListOf()) { selectedObj ->
-            val intent = DetailActivity.createIntent(this, selectedObj, isReadOnly = true)
-            addItemLauncher.launch(intent)
-        }
+        adapter = LibraryAdapter(
+            mutableListOf(),
+            onItemClick = { selectedObj ->
+                if (!isGoogleBooksMode) {
+                    val intent = DetailActivity.createIntent(this, selectedObj, isReadOnly = true)
+                    addItemLauncher.launch(intent)
+                }
+            },
+            onItemLongClick = { selectedObj ->
+                if (isGoogleBooksMode && selectedObj is Book) {
+                    viewModel.addItem(selectedObj, false)
+                    Toast.makeText(this, "Книга добавлена в библиотеку", Toast.LENGTH_SHORT).show()
+                }
+            }
+        )
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
 
@@ -126,6 +182,11 @@ class MainActivity : AppCompatActivity() {
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val position = viewHolder.bindingAdapterPosition
+                if (isGoogleBooksMode) {
+                    adapter.notifyItemChanged(position)
+                    return
+                }
+
                 val swipedObject = adapter.getItem(position)
                 viewModel.removeItem(
                     obj = swipedObject,
@@ -142,6 +203,7 @@ class MainActivity : AppCompatActivity() {
             @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
+                if (isGoogleBooksMode) return
 
                 val layoutManager = recyclerView.layoutManager as? LinearLayoutManager ?: return
 
@@ -150,15 +212,15 @@ class MainActivity : AppCompatActivity() {
                 val totalItemCount = layoutManager.itemCount
 
                 if (dy > 0) {
-                    // Пользователь скроллит вниз → подгружаем следующую страницу
-                    if (lastVisibleItem >= totalItemCount - LibraryViewModel.SAVE_LOAD_COUNT_ITEMS) {
-                        println("*** SCROLL ↓ last=$lastVisibleItem / total=$totalItemCount")
+                    // пользователь скроллит вниз, подгружается следующая страница
+                    if (lastVisibleItem >= totalItemCount - LibraryViewModel.PREFETCH_DISTANCE) {
+                        //println("*** SCROLL ↓ last=$lastVisibleItem / total=$totalItemCount")
                         viewModel.loadNextPage(firstVisibleItem, lastVisibleItem)
                     }
                 } else if (dy < 0) {
-                    // Пользователь скроллит вверх → подгружаем предыдущую страницу
-                    if (firstVisibleItem <= LibraryViewModel.SAVE_LOAD_COUNT_ITEMS) {
-                        println("*** SCROLL ↑ first=$firstVisibleItem / total=$totalItemCount")
+                    // пользователь скроллит вверх, подгружается предыдущая страница
+                    if (firstVisibleItem <= LibraryViewModel.PREFETCH_DISTANCE) {
+                        //println("*** SCROLL ↑ first=$firstVisibleItem / total=$totalItemCount")
                         viewModel.loadPreviousPage(firstVisibleItem, lastVisibleItem)
                     }
                 }
@@ -204,5 +266,39 @@ class MainActivity : AppCompatActivity() {
             }
             newObj?.let { obj -> viewModel.addItem(obj) }
         }
+    }
+
+    private fun switchToLocalLibrary() {
+        isGoogleBooksMode = false
+        btnLocalLibrary.backgroundTintList = ContextCompat.getColorStateList(this, R.color.colorPrimary)
+        btnGoogleBooks.backgroundTintList = ContextCompat.getColorStateList(this, android.R.color.darker_gray)
+        searchForm.visibility = View.GONE
+        sortSpinner.visibility = View.VISIBLE
+        viewModel.loadInitialItems()
+        buttonAddUpdate.visibility = View.VISIBLE
+    }
+
+    private fun switchToGoogleBooks() {
+        isGoogleBooksMode = true
+        btnLocalLibrary.backgroundTintList = ContextCompat.getColorStateList(this, android.R.color.darker_gray)
+        btnGoogleBooks.backgroundTintList = ContextCompat.getColorStateList(this, R.color.colorPrimary)
+        sortSpinner.visibility = View.GONE
+        searchForm.visibility = View.VISIBLE
+        adapter.setItems(emptyList())
+        buttonAddUpdate.visibility = View.GONE
+    }
+
+    private fun performGoogleBooksSearch() {
+        val title = etTitle.text.toString().trim()
+        val author = etAuthor.text.toString().trim()
+
+        val query = buildString {
+            if (title.isNotEmpty()) append("intitle:$title ")
+            if (author.isNotEmpty()) append("inauthor:$author")
+        }.trim()
+
+        if (query.isEmpty()) return
+
+        viewModel.searchGoogleBooks(query)
     }
 }
