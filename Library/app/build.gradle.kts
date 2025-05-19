@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
+    //alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     id("kotlin-kapt")
 }
@@ -32,6 +32,9 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.14"
     }
     kotlinOptions {
         jvmTarget = "11"
@@ -77,6 +80,20 @@ dependencies {
 
     implementation(libs.androidx.room.ktx)
 
+    // зависимости даггера
+    implementation(libs.dagger)
+    kapt(libs.google.dagger.compiler)
+    implementation(libs.assisted.inject.annotations.dagger2)
+    kapt(libs.inject.assisted.inject.processor.dagger2)
+
+    implementation(libs.kotlinStdlib)
+
     implementation(project(":domain"))
     implementation(project(":data"))
+}
+
+
+kapt {
+    correctErrorTypes = true
+    useBuildCache = true
 }

@@ -1,21 +1,26 @@
 [versions]
-agp = "8.9.2"
+agp = "8.6.1"
+assistedInjectAnnotationsDagger2 = "0.6.0"
+assistedInjectProcessorDagger2 = "0.6.0"
 constraintlayout = "2.2.11"
 constraintlayoutVersion = "2.2.1"
 converterGson = "2.9.0"
+dagger = "2.51"
+daggerCompiler = "2.51"
 gson = "2.10.1"
 javafaker = "1.0.2"
-kotlin = "2.1.0"
-coreKtx = "1.16.0"
+kotlin = "1.9.24"
+kotlinSerialization = "1.6.3"
+coreKtx = "1.12.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 kotlinxCoroutinesAndroid = "1.8.0"
-kotlinxSerializationCore = "1.6.0"
+kotlinxSerializationCore = "1.6.3"
 kotlinxSerializationJson = "1.6.3"
-lifecycleRuntimeKtx = "2.8.7"
+lifecycleRuntimeKtx = "2.6.2"
 activityCompose = "1.10.1"
-composeBom = "2025.04.01"
+composeBom = "2025.05.00"
 appcompat = "1.7.0"
 loggingInterceptor = "4.12.0"
 okhttp = "4.12.0"
@@ -23,17 +28,15 @@ recyclerview = "1.4.0"
 preference = "1.2.1"
 cardview = "1.0.0"
 material = "1.12.0"
-navigationFragmentKtx = "2.8.9"
-navigationUiKtx = "2.8.9"
+navigationFragmentKtx = "2.9.0"
+navigationUiKtx = "2.9.0"
 retrofit = "2.9.0"
 retrofit2KotlinxSerializationConverter = "0.8.0"
-roomRuntime = "2.7.1"
-roomVersion = "2.7.1"
+roomRuntime = "2.6.1"
+roomVersion = "2.6.1"
 shimmer = "0.5.0"
-kotlinSerialization = "2.1.0"
 
 [libraries]
-androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
 androidx-constraintlayout-v214 = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayoutVersion" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-livedata-ktx = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycleRuntimeKtx" }
@@ -41,8 +44,12 @@ androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-view
 androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerview" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomVersion" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomVersion" }
+assisted-inject-annotations-dagger2 = { module = "com.squareup.inject:assisted-inject-annotations-dagger2", version.ref = "assistedInjectAnnotationsDagger2" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
+dagger = { module = "com.google.dagger:dagger", version.ref = "dagger" }
+google-dagger-compiler = { module = "com.google.dagger:dagger-compiler", version.ref = "daggerCompiler" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+inject-assisted-inject-processor-dagger2 = { module = "com.squareup.inject:assisted-inject-processor-dagger2", version.ref = "assistedInjectProcessorDagger2" }
 javafaker = { module = "com.github.javafaker:javafaker", version.ref = "javafaker" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -72,10 +79,11 @@ retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit
 retrofit2-kotlinx-serialization-converter = { module = "com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter", version.ref = "retrofit2KotlinxSerializationConverter" }
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
 shimmer = { module = "com.facebook.shimmer:shimmer", version.ref = "shimmer" }
+kotlinStdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version = "1.9.24" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinSerialization" }
+#kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "agp" }

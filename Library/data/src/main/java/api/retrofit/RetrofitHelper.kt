@@ -22,8 +22,7 @@ object RetrofitHelper {
         return json.asConverterFactory(contentType.toMediaType())
     }
 
-    fun createRetrofit(): BookApi {
-
+    fun createBookApi(): BookApi {
         val loggingInterceptor = HttpLoggingInterceptor().apply {
             setLevel(HttpLoggingInterceptor.Level.BODY)
         }

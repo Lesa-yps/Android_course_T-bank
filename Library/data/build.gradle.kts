@@ -32,6 +32,12 @@ android {
 
     kotlinOptions {
         jvmTarget = "11"
+        freeCompilerArgs += listOf(
+            "-opt-in=kotlinx.serialization.InternalSerializationApi"
+        )
+    }
+    lint {
+        disable += "UnsafeOptInUsageError"
     }
 }
 
@@ -57,5 +63,13 @@ dependencies {
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.retrofit2.kotlinx.serialization.converter)
 
+    implementation(libs.kotlinStdlib)
+
     implementation(project(":domain"))
+}
+
+
+kapt {
+    correctErrorTypes = true
+    useBuildCache = true
 }

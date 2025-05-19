@@ -38,4 +38,5 @@ dependencies {
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.androidx.core.ktx)
     implementation(libs.javafaker)
+    implementation(libs.kotlinStdlib)
 }
