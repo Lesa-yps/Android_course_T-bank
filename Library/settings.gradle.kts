@@ -21,3 +21,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "Android_course_T_bank"
 include(":app")
+include(":data")
+include(":domain")

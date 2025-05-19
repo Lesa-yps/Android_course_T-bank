@@ -65,7 +65,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    implementation(libs.javafaker)
     implementation(libs.androidx.recyclerview)
     implementation(libs.androidx.constraintlayout.v214)
     implementation(libs.androidx.cardview)
@@ -76,19 +75,8 @@ dependencies {
     implementation(libs.shimmer)
     implementation(libs.kotlinx.coroutines.android)
 
-    // Room
-    implementation(libs.room.runtime)
-    kapt(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
 
-    // Retrofit
-    implementation(libs.retrofit)
-    implementation(libs.converter.gson)
-    implementation(libs.logging.interceptor)
-    implementation(libs.okhttp)
-
-    // Kotlin Serialization
-    implementation(libs.kotlinx.serialization.json)
-    implementation(libs.retrofit2.kotlinx.serialization.converter)
-    implementation(libs.kotlinx.serialization.core)
+    implementation(project(":domain"))
+    implementation(project(":data"))
 }

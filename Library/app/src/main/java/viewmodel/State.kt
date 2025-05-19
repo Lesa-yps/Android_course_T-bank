@@ -1,5 +1,4 @@
-package com.example.android_course_t_bank
-
+package viewmodel
 
 // статусы загрузки данных (как на семинаре)
 sealed interface State<T> {

@@ -26,11 +26,19 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
+import api.retrofit.RetrofitHelper
 import domain.Book
+import repository.LibraryRepositoryImpl
 import room.MIGRATION_1_2
+import utils.SortType
+import utils.getSavedSortType
+import utils.saveSortType
+import viewmodel.LibraryViewModel
+import viewmodel.LibraryViewModelFactory
+import viewmodel.State
 
 
-val MIN_COUNT_LETTERS_TO_SEARCH = 3
+const val MIN_COUNT_LETTERS_TO_SEARCH = 3
 
 class MainActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
@@ -67,7 +75,9 @@ class MainActivity : AppCompatActivity() {
 
         // создание ViewModel через фабрику
         val currentSortType = getSavedSortType(this)
-        val factory = LibraryViewModelFactory(dao, currentSortType)
+        val api = RetrofitHelper.createRetrofit()
+        val repository = LibraryRepositoryImpl(dao, api)
+        val factory = LibraryViewModelFactory(repository, currentSortType)
         viewModel = ViewModelProvider(this, factory)[LibraryViewModel::class.java]
 
         recyclerView = findViewById(R.id.recyclerView)
@@ -215,7 +225,7 @@ class MainActivity : AppCompatActivity() {
                     // пользователь скроллит вниз, подгружается следующая страница
                     if (lastVisibleItem >= totalItemCount - LibraryViewModel.PREFETCH_DISTANCE) {
                         //println("*** SCROLL ↓ last=$lastVisibleItem / total=$totalItemCount")
-                        viewModel.loadNextPage(firstVisibleItem, lastVisibleItem)
+                        viewModel.loadNextPage(firstVisibleItem)
                     }
                 } else if (dy < 0) {
                     // пользователь скроллит вверх, подгружается предыдущая страница

@@ -1,4 +1,4 @@
-package com.example.android_course_t_bank
+package utils
 
 import android.content.Context
 import androidx.core.content.edit
@@ -28,4 +28,9 @@ fun sortItems(items: List<LibraryObj>, sortType: SortType): List<LibraryObj> {
         SortType.BY_NAME -> items.sortedBy { it.name }
         SortType.BY_DATE -> items.sortedBy { it.addedDate }
     }
+}
+
+fun sortItemsComparator(sortType: SortType): Comparator<LibraryObj> = when (sortType) {
+    SortType.BY_NAME -> compareBy { it.name }
+    SortType.BY_DATE -> compareByDescending { it.addedDate }
 }
