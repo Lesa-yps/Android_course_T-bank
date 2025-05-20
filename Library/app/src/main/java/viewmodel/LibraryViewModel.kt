@@ -6,6 +6,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
+import dagger.internal.Provider
 import domain.Book
 import domain.Disk
 import domain.LibraryObj
@@ -16,11 +20,12 @@ import utils.SortType
 import kotlin.coroutines.cancellation.CancellationException
 import repository.LibraryRepository
 import utils.sortItemsComparator
+import javax.inject.Inject
 
 
-class LibraryViewModel(
+class LibraryViewModel @AssistedInject constructor(
     private val repository: LibraryRepository,
-    private var currentSortType: SortType
+    @Assisted private var currentSortType: SortType
 ) : ViewModel() {
 
     private val _state = MutableLiveData<State<List<LibraryObj>>>(State.Loading())
@@ -158,20 +163,13 @@ class LibraryViewModel(
         }
     }
 
+    @AssistedFactory
+    interface Factory {
+        fun create(currentSortType: SortType): LibraryViewModel
+    }
+
     companion object {
         const val PAGE_SIZE = 15 // количество элементов, загружаемых в память
         const val PREFETCH_DISTANCE = 5
-    }
-}
-
-class LibraryViewModelFactory(
-    private val repository: LibraryRepository,
-    private val initialSortType: SortType
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(LibraryViewModel::class.java)) {
-            return LibraryViewModel(repository, initialSortType) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

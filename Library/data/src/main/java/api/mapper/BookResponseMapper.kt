@@ -2,9 +2,11 @@ package api.mapper
 
 import api.model.BookResponse
 import domain.Book
+import kotlinx.serialization.InternalSerializationApi
 import kotlin.math.absoluteValue
 
 object BookResponseMapper {
+    @OptIn(InternalSerializationApi::class)
     fun map(response: BookResponse): Book {
         // генерируется уникальный ID (используется ISBN если есть, иначе ID от Google)
         val uniqueId = response.volumeInfo.industryIdentifiers

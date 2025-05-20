@@ -27,6 +27,7 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import api.retrofit.RetrofitHelper
+import di.LibraryComponentProvider
 import domain.Book
 import repository.LibraryRepositoryImpl
 import room.MIGRATION_1_2
@@ -34,8 +35,8 @@ import utils.SortType
 import utils.getSavedSortType
 import utils.saveSortType
 import viewmodel.LibraryViewModel
-import viewmodel.LibraryViewModelFactory
 import viewmodel.State
+import javax.inject.Inject
 
 
 const val MIN_COUNT_LETTERS_TO_SEARCH = 3
@@ -45,13 +46,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var shimmerLayout: ShimmerFrameLayout
     private lateinit var errorTextView: TextView
     private lateinit var buttonAddUpdate: Button
-    private lateinit var viewModel: LibraryViewModel
     private lateinit var adapter: LibraryAdapter
     private lateinit var sortSpinner: Spinner
     private lateinit var adapterSpinner: ArrayAdapter<String>
 
-    private lateinit var db: LibraryDatabase
-    private lateinit var dao: LibraryDao
+    @Inject lateinit var viewModelAssistedFactory: LibraryViewModel.Factory
+    lateinit var viewModel: LibraryViewModel
 
     private lateinit var btnLocalLibrary: Button
     private lateinit var btnGoogleBooks: Button
@@ -63,22 +63,15 @@ class MainActivity : AppCompatActivity() {
     private var isGoogleBooksMode = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        (application as LibraryComponentProvider)
+            .getLibraryComponent()
+            .inject(this)
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // инициализация базы данных
-        db = Room.databaseBuilder(
-            applicationContext,
-            LibraryDatabase::class.java, "library.db"
-        ).addMigrations(MIGRATION_1_2).build()
-        dao = db.libraryDao()
-
-        // создание ViewModel через фабрику
         val currentSortType = getSavedSortType(this)
-        val api = RetrofitHelper.createRetrofit()
-        val repository = LibraryRepositoryImpl(dao, api)
-        val factory = LibraryViewModelFactory(repository, currentSortType)
-        viewModel = ViewModelProvider(this, factory)[LibraryViewModel::class.java]
+        viewModel = viewModelAssistedFactory.create(currentSortType)
 
         recyclerView = findViewById(R.id.recyclerView)
         shimmerLayout = findViewById(R.id.shimmerLayout)
